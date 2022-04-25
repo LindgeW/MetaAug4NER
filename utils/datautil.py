@@ -12,15 +12,14 @@ import numpy as np
 #     for line in file_reader:
 #         try:
 #             tokens = line.strip().split()
-#             if line.strip() == '' or len(tokens) < 3:
+#             if line.strip() == '' or len(tokens) < 2:
 #                 if len(insts) > 0:
 #                     yield insts
 #                 insts = []
-#             elif len(tokens) == 3:
-#                 insts.append(Instance(tokens[0], tokens[1], tokens[2]))
+#             elif len(tokens) == 2:
+#                 insts.append(Instance(tokens[0], tokens[-1]))
 #         except Exception as e:
 #             print('exception occur: ', e)
-#
 #     if len(insts) > 0:
 #         yield insts
 
@@ -79,9 +78,9 @@ def _is_chinese(a_chr):
     return u'\u4e00' <= a_chr <= u'\u9fff'
 
 
-def batch_variable(batch_data, mVocab, stat=None):
+def batch_variable(batch_data, mVocab):
     batch_size = len(batch_data)
-    max_seq_len = 1 + max(len(inst.chars) for inst in batch_data)  # align [CLS] !!!
+    max_seq_len = 1 + max(len(inst.chars) for inst in batch_data)
 
     bert_vocab = mVocab['bert']
     ner_tag_vocab = mVocab['ner']

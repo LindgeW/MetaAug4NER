@@ -1,14 +1,38 @@
-'''
-CWS / POS标签规范：
-1、BI
-2、BIS
-3、BIES
+def bio2span(labels):
+    spans = []
+    span = [None, -1, -1]
+    for i, tag in enumerate(labels):
+        if tag.startswith('B-'):
+            if span[2] != -1:
+                spans.append(span)
+            span = [tag.split('-')[1], i, i]
+            if i == len(labels) - 1:  # 最后一个tag
+                spans.append(span)
+        elif tag.startswith('I-') and span[1] != -1:
+            type_ = tag.split('-')[1]
+            if span[0] == type_:
+                span[2] = i
+            if i == len(labels) - 1:  # 最后一个tag
+                spans.append(span)
+        else:  # O
+            if span[2] != -1:
+                spans.append(span)
+            span = [None, -1, -1]
 
-NER标签规范：
-1、BIO
-2、BISO
-3、BIESO
-'''
+    return spans
+
+
+def span2bio(spans, seq_len, default_tag='O'):
+    tags = [default_tag] * seq_len
+    for span in spans:
+        type_, s, e = span
+        if s == e:
+            tags[s] = 'B-' + type_
+        elif s < e:
+            tags[s: e+1] = ['B-' + type_] + ['I-' + type_] * (e - s)
+        else:
+            raise IndexError
+    return tags
 
 
 def bi2bies(bi_tags):
@@ -34,82 +58,6 @@ def bio2bioes(bio_tags):
             _type = bio_tags[i].split('-')[1]
             bio_tags[i] = 'E-' + _type
     return bio_tags
-
-
-# =============================CWS============================== #
-
-
-# BI
-def extract_cws_bi_span(tag_seq):
-    spans = []
-    s = 0
-    n = len(tag_seq)
-    start = False
-    for i, tag in enumerate(tag_seq):
-        if tag == 'B':
-            s = i
-            if i + 1 == n or tag_seq[i + 1] != 'I':
-                spans.append((s, i))
-                start = False
-            else:
-                start = True
-        elif tag == 'I':
-            if start:
-                if i + 1 == n or tag_seq[i + 1] != 'I':
-                    spans.append((s, i))
-                    start = False
-        else:
-            start = False
-    return spans
-
-
-# BIS
-def extract_cws_bis_span(tag_seq):
-    spans = []
-    s = 0
-    n = len(tag_seq)
-    start = False
-    for i, tag in enumerate(tag_seq):
-        if tag == 'S':
-            spans.append((i, i))
-            start = False
-        elif tag == 'B':
-            s = i
-            start = True
-        elif tag == 'I':
-            if start:
-                if i + 1 == n or tag_seq[i + 1] != 'I':
-                    spans.append((s, i))
-                    start = False
-        else:
-            start = False
-
-    return spans
-
-
-# BIES / BMES
-def extract_cws_bies_span(tag_seq):
-    spans = []
-    s = 0
-    start = False
-    for i, tag in enumerate(tag_seq):
-        if tag == 'S':
-            spans.append((i, i))
-            start = False
-        elif tag == 'B':
-            s = i
-            start = True
-        elif tag == 'E':
-            if start:
-                spans.append((s, i))
-                start = False
-        else:
-            if tag not in ['I', 'M']:
-                start = False
-    return spans
-
-
-# =============================NER============================== #
 
 
 def extract_ner_bio_span(tag_seq: list):
@@ -241,14 +189,3 @@ def test_():
     # y = extract_ner_biso_span(x)
     # y = extract_ner_bieso_span(x)
     print(y)
-
-    spans = [(1, 2), (3, 3), (4, 6)]
-    tags = span2tags(spans, 10)
-    print(tags)
-
-    main_str = '我是一个目前在阿里巴巴实习的研究生，方向是NLP'
-    sub_str = ['阿里巴巴', 'NLP']
-    res = seq_match(main_str, sub_str)
-    tags = span2tags(res, len(main_str))
-    print(res)
-    print(tags)

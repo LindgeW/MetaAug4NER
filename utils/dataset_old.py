@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import torch
-from torch.distributions import Beta
 
 
 class DataSet(object):
@@ -125,13 +124,16 @@ class DataLoader2(object):
         return (len(self.dataset) + self.batch_size - 1) // self.batch_size
 
 
+'''
 class BatchWrapper(object):
-    def __init__(self, dl, mixup=False, mixup_args=(7, 7)):
+    def __init__(self, dl, mixup=False, mixup_args=(4, 4)):
         super(BatchWrapper, self).__init__()
         self.dl = dl
         self.mixup = mixup
         self.mixup_args = mixup_args
-        self.beta_dist = Beta(*mixup_args)
+
+    def set_batch_size(self, bs):
+        self.dl.set_batch_size(bs)
 
     def set_mixup(self, mixup, mixup_args=None):
         self.mixup = mixup
@@ -142,56 +144,128 @@ class BatchWrapper(object):
         for batch in self.dl:
             if self.mixup:
                 batch1, batch2 = [], []
+                #batch_mixup_lmbd1, batch_mixup_lmbd2 = [], []
                 bids = np.random.choice(range(len(batch)), len(batch)//2, replace=False)
                 for i, inst in enumerate(batch):
+                    #mixup_lmbd = max(0, min(1, np.random.beta(*self.mixup_args)))
                     if i in bids:
                         batch1.append(inst)
+                        #batch_mixup_lmbd1.append(mixup_lmbd)
                     else:
                         batch2.append(inst)
+                        #batch_mixup_lmbd2.append(1 - mixup_lmbd)
+
                 if len(batch) % 2 != 0:
-                    batch1.append(batch2[0])
-                assert len(batch1) == len(batch2)
-                # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch1), 1))).float()
-                batch_mixup_alpha = self.beta_dist.sample((len(batch1), 1))
-                yield batch1, batch_mixup_alpha, batch2, 1-batch_mixup_alpha
+                    batch1.append(batch2[-1])
+                    #batch_mixup_lmbd1.append(1 - batch_mixup_lmbd2[-1])
+
+                batch_mixup_lmbd1 = np.random.beta(*self.mixup_args, len(batch1))
+                batch_mixup_lmbd1 = np.where(batch_mixup_lmbd1 < 0, 0., batch_mixup_lmbd1)
+                batch_mixup_lmbd1 = np.where(batch_mixup_lmbd1 > 1, 1., batch_mixup_lmbd1)
+                batch_mixup_lmbd2 = 1. - batch_mixup_lmbd1
+                batch_mixup_lmbd1 = torch.FloatTensor(batch_mixup_lmbd1).unsqueeze(1)
+                batch_mixup_lmbd2 = torch.FloatTensor(batch_mixup_lmbd2).unsqueeze(1)
+                yield batch1, batch_mixup_lmbd1, \
+                      batch2, batch_mixup_lmbd2
             else:
-                # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch), 1))).float()
-                batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
-                yield batch, batch_mixup_alpha
+                #batch_mixup_lmbd = []
+                #for i in range(len(batch)):
+                #    mixup_lmbd = max(0, min(1, np.random.beta(*self.mixup_args)))
+                #    batch_mixup_lmbd.append(mixup_lmbd)
+                batch_mixup_lmbd = np.random.beta(*self.mixup_args, len(batch))
+                #batch_mixup_lmbd = np.where(batch_mixup_lmbd > 1-batch_mixup_lmbd, batch_mixup_lmbd, 1-batch_mixup_lmbd)
+                batch_mixup_lmbd = np.where(batch_mixup_lmbd < 0, 0., batch_mixup_lmbd)
+                batch_mixup_lmbd = np.where(batch_mixup_lmbd > 1, 1., batch_mixup_lmbd)
+                batch_mixup_lmbd = torch.FloatTensor(batch_mixup_lmbd).unsqueeze(1)
+                yield batch, batch_mixup_lmbd
+
+    def __len__(self):
+        return len(self.dl)
+'''
+
+
+class BatchWrapper(object):
+    def __init__(self, dl, mixup=False, mixup_args=(8, 8)):
+        super(BatchWrapper, self).__init__()
+        self.dl = dl
+        self.mixup = mixup
+        self.mixup_args = mixup_args
+
+    def set_mixup(self, mixup, mixup_args=None):
+        self.mixup = mixup
+        if mixup_args is not None:
+            self.mixup_args = mixup_args
+
+    def __iter__(self):
+        for batch in self.dl:
+            if self.mixup:
+                batch1, batch2 = [], []
+                batch_mixup_lmbd1, batch_mixup_lmbd2 = [], []
+                # bids = np.random.choice(range(len(batch)), len(batch)//2, replace=False)
+                # for i, inst in enumerate(batch):
+                #     if i in bids:
+                #         batch1.append(inst)
+                #     else:
+                #         batch2.append(inst)
+                #
+                # if len(batch) % 2 != 0:
+                #     batch1.append(batch2[-1])
+                # batch_mixup_lmbd1 = np.random.beta(*self.mixup_args, len(batch1))
+                # batch_mixup_lmbd1 = np.where(batch_mixup_lmbd1 < 0, 0., batch_mixup_lmbd1)
+                # batch_mixup_lmbd1 = np.where(batch_mixup_lmbd1 > 1, 1., batch_mixup_lmbd1)
+                # batch_mixup_lmbd2 = 1. - batch_mixup_lmbd1
+
+                batcher = SampleWrapper(batch, np.random.beta, self.mixup_args)
+                for inst1, lmbd1, inst2, lmbd2 in batcher:
+                    batch1.append(inst1)
+                    batch_mixup_lmbd1.append(lmbd1)
+                    batch2.append(inst2)
+                    batch_mixup_lmbd2.append(lmbd2)
+                batch_mixup_lmbd1 = torch.FloatTensor(batch_mixup_lmbd1).unsqueeze(1)
+                batch_mixup_lmbd2 = torch.FloatTensor(batch_mixup_lmbd2).unsqueeze(1)
+                yield batch1, batch_mixup_lmbd1, batch2, batch_mixup_lmbd2
+            else:
+                # batch_mixup_lmbd = []
+                # for i in range(len(batch)):
+                #     mixup_lmbd = max(0, min(1, np.random.beta(*self.mixup_args)))
+                #     batch_mixup_lmbd.append(mixup_lmbd)
+                batch_mixup_lmbd = np.random.beta(*self.mixup_args, len(batch))
+                batch_mixup_lmbd = np.where(batch_mixup_lmbd < 0, 0., batch_mixup_lmbd)
+                batch_mixup_lmbd = np.where(batch_mixup_lmbd > 1, 1., batch_mixup_lmbd)
+                batch_mixup_lmbd = torch.FloatTensor(batch_mixup_lmbd).unsqueeze(1)
+                yield batch, batch_mixup_lmbd
 
     def __len__(self):
         return len(self.dl)
 
 
-# class BatchWrapper(object):
-#     def __init__(self, dl, mixup=False, mixup_args=(7, 7)):
-#         super(BatchWrapper, self).__init__()
-#         self.dl = dl
-#         self.mixup = mixup
-#         self.mixup_args = mixup_args
-#         self.beta_dist = Beta(*mixup_args)
-#
-#     def set_mixup(self, mixup, mixup_args=None):
-#         self.mixup = mixup
-#         if mixup_args is not None:
-#             self.mixup_args = mixup_args
-#
-#     def __iter__(self):
-#         for batch in self.dl:
-#             if self.mixup:
-#                 rand_ids = np.random.permutation(len(batch))
-#                 batch2 = [batch[i] for i in rand_ids]
-#                 assert len(batch) == len(batch2)
-#                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch1), 1))).float()
-#                 batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
-#                 yield batch, batch_mixup_alpha, batch2, 1-batch_mixup_alpha
-#             else:
-#                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch), 1))).float()
-#                 batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
-#                 yield batch, batch_mixup_alpha
-#
-#     def __len__(self):
-#         return len(self.dl)
+class SampleWrapper(object):
+    """
+    wrapper for each sample with mixup sampler
+    """
+    def __init__(self, batch, mixup, mixup_args):
+        self.mixup = mixup
+        self.batch = batch
+        self.mixup_args = mixup_args
+
+    def __len__(self):
+        return len(self.batch)
+
+    def __getitem__(self, item):
+        # first sample
+        inst1 = self.batch[item]
+        # draw a random lambda ratio from distribution
+        if self.mixup is not None:
+            mix_lambda = max(0, min(1, self.mixup(*self.mixup_args)))
+        else:
+            return inst1
+
+        if mix_lambda >= 1 or len(self) == 1:
+            return inst1, mix_lambda, inst1, 0
+        # second sample
+        id2 = np.random.choice(np.delete(np.arange(len(self)), item))
+        inst2 = self.batch[id2]
+        return inst1, mix_lambda, inst2, 1 - mix_lambda
 
 
 class BucketDataLoader(object):

@@ -5,33 +5,28 @@ from modules.crf import CRF
 from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
 from modules.BertModel import BertEmbedding
-#from modules.BertModel_adapter import BertEmbedding
 
 
 class BertSeqTagger(nn.Module):
     def __init__(self, bert_embed_dim, hidden_size, num_rnn_layer,
-                 num_tag, num_bert_layer=4,
-                 dropout=0.0, bert_model_path=None):
+                 num_tag, num_bert_layer=8,
+                 dropout=0.5, bert_model_path=None):
         super(BertSeqTagger, self).__init__()
         self.bert_embed_dim = bert_embed_dim
         self.num_tag = num_tag
         self.dropout = dropout
-        self.bert = BertEmbedding(bert_model_path, num_bert_layer,
+        self.bert = BertEmbedding(bert_model_path,
+                                  num_bert_layer,
                                   proj_dim=self.bert_embed_dim,
-                                  use_proj=True)
+                                  use_proj=False)
 
-        self.bert_norm = nn.LayerNorm(self.bert_embed_dim, eps=1e-6)
-
+        hidden_size = self.bert_embed_dim // 2
         self.seq_encoder = LSTM(input_size=self.bert_embed_dim,
                                 hidden_size=hidden_size,
                                 num_layers=num_rnn_layer,
                                 dropout=dropout)
 
-        # self.expt_group = nn.ModuleList([nn.Linear(2*hidden_size, hidden_size) for _ in range(num_tag)])
-        # self.gate_fc = nn.Linear(2*hidden_size, num_tag)
-
         self.hidden2tag = nn.Linear(2*hidden_size, num_tag)
-
         self.tag_crf = CRF(num_tags=num_tag, batch_first=True)
 
     def bert_params(self):
@@ -52,56 +47,23 @@ class BertSeqTagger(nn.Module):
                 other_params.append(param)
         return other_params
 
-    def forward(self, bert_inps, mask=None):
+    def forward(self, bert_inp, mask=None):
         '''
-        :param bert_inps: bert_ids, segments, bert_masks, bert_lens
+        :param bert_inp: bert_ids, segments, bert_masks, bert_lens
         :param mask: (bs, seq_len)  0 for padding
         :return:
         '''
-        bert_embed = self.bert(*bert_inps)
-        bert_repr = self.bert_norm(bert_embed)
+        bert_repr = self.bert(*bert_inp)
         if self.training:
             bert_repr = timestep_dropout(bert_repr, p=self.dropout)
 
-        enc_out, hn = self.seq_encoder(bert_repr, non_pad_mask=mask)
+        enc_out = self.seq_encoder(bert_repr, non_pad_mask=mask)[0]
 
         if self.training:
             enc_out = timestep_dropout(enc_out, p=self.dropout)
 
         tag_score = self.hidden2tag(enc_out)
-
         return tag_score
-
-        # B, L = enc_out.size()[:2]
-        # gate_dist = F.softmax(self.gate_fc(enc_out), dim=-1)
-        # # (B, L, 1, C)
-        # gate_dist_ = gate_dist.reshape(B*L, 1, self.num_tag)
-        # expts = []
-        # for efc in self.expt_group:
-        #     expts.append(efc(enc_out))
-        # # (B, L, C, D)
-        # expt_repr = torch.stack(tuple(expts), dim=2).contiguous()
-        # expt_repr_ = expt_repr.reshape(B*L, self.num_tag, -1)
-        # meta_expt = torch.matmul(gate_dist_, expt_repr_).reshape(B, L, -1)
-        # tag_score = self.hidden2tag(meta_expt)
-        # return tag_score, gate_dist
-
-    def attn_layer(self, h, mask=None):
-        '''
-        :param h: (b, l, d)
-        :param mask: (b, l)  0 for padding
-        :return:
-        '''
-        # (b, l, d) * (b, d, l) => (b, l, l)
-        attn_score = torch.matmul(torch.tanh(h), h.transpose(1, 2))
-        if mask is not None:
-            attn_score = attn_score.masked_fill(~mask.unsqueeze(1), -1e9)
-
-        attn_prob = F.softmax(attn_score, dim=-1)
-        # (b, l, l) * (b, l, d) => (b, l, d)
-        attn_out = torch.matmul(attn_prob, h)
-        attn_out = F.dropout(attn_out, p=0.2, training=self.training)
-        return attn_out
 
     def tag_loss(self, tag_score, gold_tags, mask=None, penalty_ws=None, alg='crf'):
         '''
@@ -133,4 +95,3 @@ class BertSeqTagger(nn.Module):
             return pad_sequence(best_tag_seq, batch_first=True, padding_value=0)
         else:
             return tag_score.data.argmax(dim=-1) * mask.long()
-

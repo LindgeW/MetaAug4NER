@@ -2,7 +2,6 @@ import os
 import sys
 from collections import Counter
 
-
 class Instance:
     def __init__(self, wd, ner):
         self.wd = wd
@@ -74,7 +73,6 @@ def extract_ners(in_path, out_path):
                 #ent_wd_counter[(tp, wd)] += 1
                 ent_ctr[tp] = set([wd])
 
-    #print(ent_wd_counter)
     for tp, wds in ent_ctr.items():
         fw.write(f'{tp} ||| {" ".join(wds)}\n')
     fw.close()

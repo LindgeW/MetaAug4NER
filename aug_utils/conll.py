@@ -59,7 +59,6 @@ def filter():
    for ci, ai in zip(reader('conll.train.675'), reader('conll.train.675.repl2')):
        if len(ci['wds']) >= 10 and len(ci['wds']) <= 15:
            print(ci['wds'], '\n', ai['wds'], '\n\n')
-      
 
 filter()
 

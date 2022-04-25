@@ -359,9 +359,3 @@ class MultiVocab(object):
         return new_
 
 
-if __name__ == '__main__':
-    bert_vocab = BERTVocab('../bert/en_bert/vocab.txt')
-    bert_ids1 = bert_vocab.bert2id('I love you'.split(' '))[0]
-    print(bert_ids1)
-    bert_ids2 = bert_vocab.bert2id('i Love you'.split(' '))[0]
-    print(bert_ids2)
