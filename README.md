@@ -1,15 +1,10 @@
 ### Robust Self-augmentation for NER with Meta-reweighting
 
-#### To Train
-```
-// 中文ontonote4 采样5%的数据
-python train_reweight.py --cuda 1 -lr 1e-3 --bert_lr 2e-5 --batch_size 4 --aug_batch_size 8 --update_step 1 --patient 3 --genre onto_5 --aug_genre onto_5_repl1 --train_type aug &> onto_5.log &
-```
 
 #### Higher
-核心思想：将计算复杂的高阶导数简化成一阶近似（如一阶泰勒展开）
++ [a high-order optimization library for meta-learning](https://github.com/facebookresearch/higher)
++ Core Thought: the complex calculation of higher-order gradients is simplified to a first-order approximation (e.g., to do the first-order Taylor expansion)
 
-[a high-order optimization library for meta-learning](https://github.com/facebookresearch/higher)
 
 #### Related Work
 - [Learning to Reweight Examples for Robust Deep Learning](https://proceedings.mlr.press/v80/ren18a/ren18a.pdf)

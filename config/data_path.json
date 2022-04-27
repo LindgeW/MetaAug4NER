@@ -109,24 +109,6 @@
  "conll_5_repl1": {
     "train": "./conll03/conll.train.675.repl1"
   },
- "conll_5_repl1_0": {
-    "train": "./conll03/ems/conll.train.675.0"
-  },
- "conll_5_repl1_2": {
-    "train": "./conll03/ems/conll.train.675.2"
-  },
- "conll_5_repl1_4": {
-    "train": "./conll03/ems/conll.train.675.4"
-  },
- "conll_5_repl1_6": {
-    "train": "./conll03/ems/conll.train.675.6"
-  },
- "conll_5_repl1_8": {
-    "train": "./conll03/ems/conll.train.675.8"
-  },
- "conll_5_repl1_10": {
-    "train": "./conll03/ems/conll.train.675.10"
-  },
  "conll_5_repl2": {
     "train": "./conll03/conll.train.675.repl2"
   },

@@ -60,7 +60,6 @@ def extract_ners(in_path, out_path):
     all_insts = read_file(in_path)
     fw = open(out_path, 'w', encoding='utf-8')
     ent_ctr = dict()
-    #ent_wd_counter = Counter()
     for insts in all_insts:
         sent_ners = get_ners(insts)
         for ners in sent_ners:
@@ -68,10 +67,8 @@ def extract_ners(in_path, out_path):
             wd = '_'.join([ner.wd for ner in ners])
             if len(ent_ctr) > 0 and tp in ent_ctr:
                 ent_ctr[tp].add(wd)
-                #ent_wd_counter[(tp, wd)] += 1
             else:
-                #ent_wd_counter[(tp, wd)] += 1
-                ent_ctr[tp] = set([wd])
+                ent_ctr[tp] = {wd}
 
     for tp, wds in ent_ctr.items():
         fw.write(f'{tp} ||| {" ".join(wds)}\n')

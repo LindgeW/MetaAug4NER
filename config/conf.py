@@ -45,8 +45,7 @@ def args_config():
     parse.add_argument('--hidden_size', type=int, default=400, help='feature size of hidden layer')
     parse.add_argument('--rnn_depth', type=int, default=1, help='number of rnn layers')
     parse.add_argument('--enc_bidi', action='store_true', default=True, help='is encoder bidirectional?')
-    parse.add_argument('--att_drop', type=float, default=0.1, help='attention dropout')
-    parse.add_argument('--embed_drop', type=float, default=0.25, help='drop rate of embedding layer')
+    parse.add_argument('--embed_drop', type=float, default=0.5, help='drop rate of embedding layer')
     parse.add_argument('--rnn_drop', type=float, default=0.5, help='drop rate of rnn layer')
     parse.add_argument('--dropout', type=float, default=0.5, help='dropout ratio')
 

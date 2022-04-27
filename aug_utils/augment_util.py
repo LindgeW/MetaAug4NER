@@ -1,15 +1,16 @@
-import sys
-import os
-import random
 import itertools
+import random
+import sys
+
 from sim_wd import Synonym
+
 synonyms = Synonym()
-#res = synonyms.nearby('sad')
 
 
 class Instance:
-    def __init__(self, wd, ner):
+    def __init__(self, wd, cws, ner):
         self.wd = wd
+        self.cws = cws
         self.ner = ner
 
     def __repr__(self):
@@ -42,7 +43,6 @@ def write_to_conll(path, sent_insts):
 
 
 def read_from_file(path):
-    assert os.path.exists(path)
     sents = []
     with open(path, 'r', encoding='utf-8') as fin:
         for line in fin:
@@ -57,7 +57,6 @@ def read_from_file(path):
         yield sents
 
 
-# 随机采样指定比例的数据
 def read_data(path, ratio=1., seed=None):
     if seed:
         random.seed(seed)
@@ -68,10 +67,11 @@ def read_data(path, ratio=1., seed=None):
 
     if ratio < 1:
         n = len(data_set)
-        samples = random.sample(data_set, int(ratio*n))
+        samples = random.sample(data_set, int(ratio * n))
         return samples
     else:
         return data_set
+
 
 def chk_inst(insts):
     full_O = True
@@ -88,16 +88,16 @@ def rand_train_dev_split(path, ratio=0.1, seed=None):
     loader = read_from_file(path)
     dataset = []
     for insts in loader:
-        dataset.append(insts)    
+        dataset.append(insts)
     n = len(dataset)
     random.shuffle(dataset)
     n_split = int(n * ratio)
-    
+
     train_set = dataset[n_split:]
     dev_set = dataset[:n_split]
     print(n, len(train_set), len(dev_set))
     return train_set, dev_set
- 
+
 
 # O O O B-LOC M-LOC O O B-PER E-PER M-PER O O
 # def replace_one_instance(insts, ner_dic):
@@ -186,7 +186,7 @@ def synonyms_replace_bies(insts):
                         cws = 'S'
                     elif j == 0:
                         cws = 'B'
-                    elif j == len(syn_wd)-1:
+                    elif j == len(syn_wd) - 1:
                         cws = 'E'
                     else:
                         cws = 'M'
@@ -204,11 +204,11 @@ def synonyms_replace_bi(insts):
         one_wd.append(inst)
         if inst.cws.lower() == 'b':
             is_start = True
-            if i == len(insts)-1 or insts[i+1].cws.lower() != 'i':
+            if i == len(insts) - 1 or insts[i + 1].cws.lower() != 'i':
                 seg_insts.append(one_wd)
                 one_wd = []
                 is_start = False
-        elif inst.cws.lower() == 'i' and (i == len(insts)-1 or insts[i+1].cws.lower() != 'i'):
+        elif inst.cws.lower() == 'i' and (i == len(insts) - 1 or insts[i + 1].cws.lower() != 'i'):
             if is_start:
                 seg_insts.append(one_wd)
                 is_start = False
@@ -243,7 +243,7 @@ def synonyms_replace(insts, rate=0.5):
                 syn_wd = random.choice(wds)
                 insts[i].wd = syn_wd
     return insts
-        
+
 
 def replace_ner(insts, ner_dic, rate=0.5):
     ners = []
@@ -268,14 +268,12 @@ def replace_ner(insts, ner_dic, rate=0.5):
             if inst.ner.startswith('M-') or inst.ner.startswith('I-'):
                 one_ent.append(inst)
 
-    has_ent = False
     for i, items in enumerate(ners):
         if items[0].ner != 'O' and random.random() < rate:
-            has_ent = True
             ner_type = items[0].ner.split('-')[1]
             cands = ner_dic[ner_type]
             new_wd = random.sample(cands, 1)[0]
-            new_wds = new_wd.split('_') 
+            new_wds = new_wd.split('_')
             rep_insts = []
             for j, w in enumerate(new_wds):
                 if len(new_wds) == 1:
@@ -286,47 +284,30 @@ def replace_ner(insts, ner_dic, rate=0.5):
                     ner_tag = 'E-' + ner_type
                 else:
                     ner_tag = 'I-' + ner_type
-                rep_insts.append(Instance(w, ner_tag))
+                rep_insts.append(Instance(w, None, ner_tag))
             ners[i] = rep_insts
 
-    return list(itertools.chain.from_iterable(ners))  # flat list
-    #if has_ent:
-    #    return list(itertools.chain.from_iterable(ners))  # flat list
-    #else:
-    #    return []
+    return list(itertools.chain.from_iterable(ners))
 
 
-# 对数据中同类型实体进行替换
 def aug_ner(data_path, save_path, ner_path, rate=0.5, aug_times=1, seed=1347):
     ner_dic = load_dic(ner_path)
-    #dataset = read_data(data_path, ratio, seed)
+    # dataset = read_data(data_path, ratio, seed)
     dataset = read_data(data_path, 1, seed)
-    print(len(dataset))
-
     repl_insts = []
     for _ in range(aug_times):
         for i, sent in enumerate(dataset):
-            sent_insts = replace_ner(sent, ner_dic, rate) 
-            sent_insts = synonyms_replace(sent_insts, 1-rate)
-            #if sent_insts and sent_insts not in repl_insts:
+            sent_insts = replace_ner(sent, ner_dic, rate)
+            sent_insts = synonyms_replace(sent_insts, 1 - rate)
             if sent_insts:
                 repl_insts.append(sent_insts)
 
     my_insts = repl_insts if repl_insts else dataset
-
-    # for sent_insts in my_insts:
-    #     for wd_insts in sent_insts:
-    #         for ins in wd_insts:
-    #             fw.write(f'{ins.wd}\t{ins.cws}\t{ins.ner}\n')
-    #     fw.write('\n')
-
-    print('writing ....')    
     fw = open(save_path, 'w', encoding='utf-8')
     for insts in my_insts:
         for ins in insts:
             fw.write(f'{ins.wd}\t{ins.ner}\n')
         fw.write('\n')
-
     fw.close()
     print('Done!')
 
@@ -334,9 +315,9 @@ def aug_ner(data_path, save_path, ner_path, rate=0.5, aug_times=1, seed=1347):
 # python aug_utils.py onto4.train.1415 train.1415.repl1 train.dic 1 1
 def run():
     train_file, out_file, train_dic_file, times, rate = sys.argv[1:6]
-    print('times:',times)
+    print('times:', times)
     aug_ner(train_file,  # 训练集路径
-            out_file,    # 输出文件
+            out_file,  # 输出文件
             train_dic_file,  # 训练集实体词典
             aug_times=int(times),  # 0表示不替换
             rate=float(rate))
@@ -348,10 +329,9 @@ def run_split():
     _, part_set = rand_train_dev_split(train_file, float(ratio), 2379)
     random.shuffle(part_set)
     dev_size = int(len(part_set) * 0.1)
-    write_to_conll('conll.train.'+str(len(part_set)-dev_size), part_set[dev_size:])    
-    write_to_conll('conll.dev.'+str(len(part_set)-dev_size), part_set[:dev_size])    
+    write_to_conll('conll.train.' + str(len(part_set) - dev_size), part_set[dev_size:])
+    write_to_conll('conll.dev.' + str(len(part_set) - dev_size), part_set[:dev_size])
 
 
 run()
-#run_split()
-
+# run_split()

@@ -1,8 +1,6 @@
 import numpy as np
 import sys
 import os
-import random
-import itertools
 
 
 class Instance:
@@ -16,7 +14,6 @@ class Instance:
 
     def __str__(self):
         return str(self.__dict__)
-
 
 
 def read_from_file(path):
@@ -35,7 +32,6 @@ def read_from_file(path):
         yield sents
 
 
-# 随机采样指定比例的数据
 def shuffle(in_path, out_path):
     loader = read_from_file(in_path)
     data_set = []

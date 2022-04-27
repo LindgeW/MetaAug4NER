@@ -32,14 +32,6 @@ class Trainer(object):
         else:
             self.aug_train_set = None
 
-        '''
-        self.train_loader = DataLoader(self.train_set, batch_size=self.args.batch_size, shuffle=True)
-        #self.train_loader = DataLoader(self.aug_train_set + self.train_set, batch_size=self.args.batch_size, shuffle=True)
-        if self.aug_train_set is not None:
-            #self.aug_train_loader = DataLoader(self.aug_train_set + self.train_set, batch_size=self.args.aug_batch_size, shuffle=True)
-            self.aug_train_loader = BatchWrapper(BucketDataLoader(self.aug_train_set + self.train_set, batch_size=self.args.aug_batch_size, key=lambda x: len(x.chars), shuffle=True, sort_within_batch=True), mixup=True)
-        '''
-
         self.dev_loader = DataLoader(self.val_set, batch_size=self.args.test_batch_size)
         self.test_loader = DataLoader(self.test_set, batch_size=self.args.test_batch_size)
         self.vocabs = create_vocab(self.train_set, data_config['pretrained']['bert_model'], embed_file=None)
