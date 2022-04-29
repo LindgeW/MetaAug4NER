@@ -16,7 +16,7 @@ import numpy as np
 #                 if len(insts) > 0:
 #                     yield insts
 #                 insts = []
-#             elif len(tokens) == 2:
+#             else:
 #                 insts.append(Instance(tokens[0], tokens[-1]))
 #         except Exception as e:
 #             print('exception occur: ', e)
@@ -26,15 +26,14 @@ import numpy as np
 
 def read_insts(file_reader):
     new_inst = {'chars': [], 'ner_tags': []}
-    num_col = 2
     for line in file_reader:
         try:
             tokens = line.strip().split()
-            if line.strip() == '' or len(tokens) < num_col:
+            if line.strip() == '' or len(tokens) < 2:
                 if len(new_inst['chars']) > 0:
                     yield Instance(**new_inst)
                 new_inst = {'chars': [], 'ner_tags': []}
-            elif len(tokens) == num_col:
+            else:
                 new_inst['chars'].append(tokens[0])
                 new_inst['ner_tags'].append(tokens[-1])
         except Exception as e:

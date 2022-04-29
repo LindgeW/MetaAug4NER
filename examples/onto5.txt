@@ -1,0 +1,225 @@
+I	O
+just	O
+got	O
+back	O
+from	O
+the	O
+gym	O
+.	O
+
+oh	O
+good	O
+.	O
+
+uh-huh	O
+.	O
+
+How	O
+'s	O
+it	O
+going	O
+?	O
+
+oh	O
+pretty	O
+well	O
+.	O
+
+It	O
+was	O
+really	O
+crowded	O
+today	B-DATE
+.	O
+
+yeah	O
+.	O
+
+I	O
+kind	O
+of	O
+assumed	O
+everyone	O
+would	O
+be	O
+at	O
+the	O
+shore	O
+.	O
+
+uh-huh	O
+.	O
+
+I	O
+was	O
+wrong	O
+.	O
+
+Well	O
+it	O
+'s	O
+the	B-DATE
+middle	I-DATE
+of	I-DATE
+the	I-DATE
+week	I-DATE
+or	O
+whatever	O
+
+so	O
+.	O
+
+But	O
+it	O
+'s	O
+the	B-DATE
+fourth	I-DATE
+of	I-DATE
+July	I-DATE
+.	O
+
+%mm	O
+.	O
+
+So	O
+.	O
+
+yeah	O
+.	O
+
+People	O
+have	O
+to	O
+work	O
+tomorrow	B-DATE
+.	O
+
+Do	O
+you	O
+have	O
+to	O
+work	O
+tomorrow	B-DATE
+?	O
+
+yeah	O
+.	O
+
+Did	O
+you	O
+have	O
+off	O
+yesterday	B-DATE
+?	O
+
+Yes	O
+.	O
+
+oh	O
+that	O
+'s	O
+good	O
+.	O
+
+And	O
+I	O
+was	O
+paid	O
+too	O
+.	O
+
+oh	O
+.	O
+
+Is	O
+it	O
+paid	O
+today	B-DATE
+?	O
+
+No	O
+.	O
+
+oh	O
+.	O
+
+But	O
+%uh	O
+
+yeah	O
+,	O
+
+so	O
+the	O
+gym	O
+'s	O
+going	O
+well	O
+.	O
+
+oh	O
+.	O
+
+But	O
+I	O
+still	O
+need	O
+to	O
+go	O
+more	O
+often	O
+.	O
+
+Well	O
+how	O
+often	O
+are	O
+you	O
+going	O
+?	O
+
+Only	O
+four	O
+days	O
+a	O
+week	O
+.	O
+
+.	O
+
+yeah	O
+.	O
+
+Got	O
+to	O
+get	O
+that	O
+up	O
+to	O
+five	B-CARDINAL
+.	O
+
+%mm	O
+.	O
+
+But	O
+,	O
+I	O
+do	O
+n't	O
+really	O
+like	O
+going	O
+with	O
+Anne	B-PERSON
+Marie	I-PERSON
+because	O
+she	O
+does	O
+n't	O
+like	O
+to	O
+stay	O
+very	O
+long	O
+.	O
