@@ -1,6 +1,11 @@
 from gensim.models import Word2Vec, KeyedVectors
 from stop_words import stop_words
 
+# Wikipedia2Vec
+# https://wikipedia2vec.github.io/wikipedia2vec/pretrained/
+# https://wikipedia2vec.github.io/wikipedia2vec/usage/
+
+
 class Synonym:
     def __init__(self, word2vec_path):
         # wv_from_text.save_word2vec_format('glove.6b.200d.bin', binary=True)
