@@ -1,5 +1,6 @@
 ### Robust Self-augmentation for NER with Meta-reweighting
 
+This repository contains the code for [Robust Self-Augmentation for Named Entity Recognition with Meta Reweighting](https://arxiv.org/pdf/2204.11406.pdf)  (NAACL2022).
 
 #### Higher
 + [a high-order optimization library for meta-learning](https://github.com/facebookresearch/higher)
