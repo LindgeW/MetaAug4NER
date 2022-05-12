@@ -101,24 +101,27 @@ class DataLoader2(object):
         self.dataset = dataset
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.L = len(self)
+        self.len = len(self)
         self.cur_i = -1
+        self.ids = None
 
     def __iter__(self):
         self.cur_i = -1
+        self.ids = list(range(len(self.dataset)))
         if self.shuffle:
-            random.shuffle(self.dataset)
+            random.shuffle(self.ids)
         return self
 
     def __next__(self):
         self.cur_i += 1
-        if self.cur_i < self.L:
-            return self.dataset[self.cur_i * self.batch_size: (self.cur_i+1) * self.batch_size]
+        if self.cur_i < self.len:
+            batch_ids = self.ids[self.cur_i*self.batch_size: (1+self.cur_i)*self.batch_size]
+            return [self.dataset[i] for i in batch_ids]
         else:
             raise StopIteration
 
     def has_next(self):
-        return self.cur_i < self.L - 1
+        return self.cur_i < self.len - 1
 
     def __len__(self):
         # return len(self.dataset) // self.batch_size    # drop last
