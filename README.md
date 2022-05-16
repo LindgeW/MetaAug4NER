@@ -6,6 +6,11 @@ This repository contains the code for [Robust Self-Augmentation for Named Entity
 + [a high-order optimization library for meta-learning](https://github.com/facebookresearch/higher)
 + Core Thought: the complex calculation of higher-order gradients is simplified to a first-order approximation (e.g., to do the first-order Taylor expansion)
 
+#### Requirements
++ Python >= 3.6
++ Torch >= 1.3
++ transformers >= 4.0
++ higher
 
 #### Related Work
 - [Learning to Reweight Examples for Robust Deep Learning](https://proceedings.mlr.press/v80/ren18a/ren18a.pdf)
