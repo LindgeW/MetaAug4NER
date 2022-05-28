@@ -6,7 +6,7 @@ import numpy as np
 # from model.seq_tagger import BertSeqTagger
 from model.mix_seq_tagger import BertSeqTagger
 from config.conf import args_config, data_config
-from utils.dataset_old import DataLoader, BucketDataLoader, BatchWrapper
+from utils.dataset import DataLoader, BucketDataLoader, BatchWrapper
 from utils.datautil import load_data, create_vocab, batch_variable, save_to
 from utils.conlleval import evaluate
 import torch.nn.utils as nn_utils
