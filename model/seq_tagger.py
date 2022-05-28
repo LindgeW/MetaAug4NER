@@ -60,12 +60,13 @@ class BertSeqTagger(nn.Module):
         enc_out = self.seq_encoder(bert_repr, non_pad_mask=mask)[0]
 
         if self.training:
-            enc_out = timestep_dropout(enc_out, p=self.dropout)
+            # enc_out = timestep_dropout(enc_out, p=self.dropout)
+            enc_out = F.dropout(enc_out, p=self.dropout, training=self.training)
 
         tag_score = self.hidden2tag(enc_out)
         return tag_score
 
-    def tag_loss(self, tag_score, gold_tags, mask=None, penalty_ws=None, alg='crf'):
+    def tag_loss(self, tag_score, gold_tags, mask=None, reduction='mean', alg='crf'):
         '''
         :param tag_score: (b, t, nb_cls)
         :param gold_tags: (b, t)
@@ -75,7 +76,7 @@ class BertSeqTagger(nn.Module):
         '''
         assert alg in ['greedy', 'crf']
         if alg == 'crf':
-            lld = self.tag_crf(tag_score, tags=gold_tags, mask=mask, penalty_ws=penalty_ws)
+            lld = self.tag_crf(tag_score, tags=gold_tags, mask=mask, reduction=reduction)
             return lld.neg()
         else:
             sum_loss = F.cross_entropy(tag_score.transpose(1, 2), gold_tags, ignore_index=0, reduction='sum')
