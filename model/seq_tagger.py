@@ -35,6 +35,17 @@ class BertSeqTagger(nn.Module):
     def bert_named_params(self):
         return self.bert.bert.named_parameters()
 
+    def base_named_params(self):
+        bert_param_names = []
+        for name, param in self.bert.bert.named_parameters():
+            bert_param_names.append(id(param))
+
+        other_params = []
+        for name, param in self.named_parameters():
+            if param.requires_grad and id(param) not in bert_param_names:
+                other_params.append((name, param))
+        return other_params
+    
     def base_params(self):
         bert_param_names = []
         for name, param in self.bert.bert.named_parameters():
