@@ -1,7 +1,7 @@
 import torch
 from model.mix_seq_tagger import BertSeqTagger
 from utils.datautil import load_from, batch_variable, load_data
-from utils.dataset_old import DataLoader
+from utils.dataset import DataLoader
 import argparse
 
 
