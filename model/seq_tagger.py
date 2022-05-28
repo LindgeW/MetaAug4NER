@@ -55,7 +55,8 @@ class BertSeqTagger(nn.Module):
         '''
         bert_repr = self.bert(*bert_inp)
         if self.training:
-            bert_repr = timestep_dropout(bert_repr, p=self.dropout)
+            # bert_repr = timestep_dropout(bert_repr, p=self.dropout)
+            bert_repr = F.dropout(bert_repr, p=self.dropout, training=self.training)
 
         enc_out = self.seq_encoder(bert_repr, non_pad_mask=mask)[0]
 
