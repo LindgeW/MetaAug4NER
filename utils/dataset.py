@@ -156,10 +156,12 @@ class BatchWrapper(object):
                 assert len(batch1) == len(batch2)
                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch1), 1))).float()
                 batch_mixup_alpha = self.beta_dist.sample((len(batch1), 1))
+                batch_mixup_alpha = torch.clamp(batch_mixup_alpha, min=0, max=1)
                 yield batch1, batch_mixup_alpha, batch2, 1-batch_mixup_alpha
             else:
                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch), 1))).float()
                 batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
+                batch_mixup_alpha = torch.clamp(batch_mixup_alpha, min=0, max=1)
                 yield batch, batch_mixup_alpha
 
     def __len__(self):
@@ -187,10 +189,12 @@ class BatchWrapper(object):
 #                 assert len(batch) == len(batch2)
 #                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch1), 1))).float()
 #                 batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
+#                 batch_mixup_alpha = torch.clamp(batch_mixup_alpha, min=0, max=1)
 #                 yield batch, batch_mixup_alpha, batch2, 1-batch_mixup_alpha
 #             else:
 #                 # batch_mixup_alpha = torch.tensor(np.random.beta(*self.mixup_args, (len(batch), 1))).float()
 #                 batch_mixup_alpha = self.beta_dist.sample((len(batch), 1))
+#                 batch_mixup_alpha = torch.clamp(batch_mixup_alpha, min=0, max=1)
 #                 yield batch, batch_mixup_alpha
 #
 #     def __len__(self):
