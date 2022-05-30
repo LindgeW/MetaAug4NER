@@ -312,7 +312,10 @@ class Trainer(object):
         self.model.zero_grad()
         self.optimizer.zero_grad()
         self.meta_opt.zero_grad()
+        # 随机生成器状态(Byte Tensor)
+        rand_states = [random.getstate(), np.random.get_state(), torch.get_rng_state(), torch.cuda.get_rng_state() if torch.cuda.is_available() else None]
         check_point = {'best_prf': best_test_metric,
+                       'rand_states': rand_states,
                        'model_state': self.model.state_dict(),
                        'optimizer_state': self.optimizer.state_dict(),
                        'meta_opt_state': self.meta_opt.state_dict(),
@@ -321,10 +324,14 @@ class Trainer(object):
         logger.info(f'Saved the current model states to {save_path} ...')
 
     def restore_states(self, load_path):
-        self.model.zero_grad()
-        self.optimizer.zero_grad()
-        self.meta_opt.zero_grad()
         ckpt = torch.load(load_path)
+        
+        random.setstate(ckpt['rand_states'][0])
+        np.random.set_state(ckpt['rand_states'][1])
+        torch.set_rng_state(ckpt['rand_states'][2])
+        if torch.cuda.is_available():
+            torch.cuda.set_rng_state(ckpt['rand_states'][3])
+            
         self.model.load_state_dict(ckpt['model_state'])
         self.optimizer.load_state_dict(ckpt['optimizer_state'])
         self.meta_opt.load_state_dict(ckpt['meta_opt_state'])
