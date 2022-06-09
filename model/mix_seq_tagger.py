@@ -80,7 +80,7 @@ class BertSeqTagger(nn.Module):
                 tmp_mask[:, :len1] = mask1
                 bert_repr = tmp_repr
                 mask1 = tmp_mask
-            else:
+            elif len2 < len1:
                 tmp_repr = torch.zeros_like(bert_repr)
                 # tmp_mask = mask2.new_zeros(bert_repr.shape[:2])
                 tmp_mask = torch.zeros_like(mask1)
@@ -89,7 +89,7 @@ class BertSeqTagger(nn.Module):
                 bert_repr2 = tmp_repr
                 mask2 = tmp_mask
             
-            mask = (mask1 + mask2).gt(0)
+            mask = torch.max(mask1, mask2)
             bert_repr = bert_repr * mix_lmbd.unsqueeze(1) + bert_repr2 * (1 - mix_lmbd).unsqueeze(1)
         else:
             mask = mask1
