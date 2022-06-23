@@ -14,7 +14,7 @@ This repository contains the code for [Robust Self-Augmentation for Named Entity
  2. Obtain the word-to-vectors training on [Wikipedia](https://wikipedia2vec.github.io/wikipedia2vec/pretrained/)
  3. Produce pseudo-labeled training data：`python [cn|en]_aug_util.py train_data_file aug_train_data_file ent.dic ratio aug_times`
  
-&ensp;&ensp;Note: The data format is *BIOES* CoNLL. The `conll_util.py` script provides the format transformation.
+&ensp;&ensp;Note: The data format is *BIOES* CoNLL. The `processing/conll_util.py` script provides the format transformation.
 
 #### Related Work
 - [Learning to Reweight Examples for Robust Deep Learning](https://proceedings.mlr.press/v80/ren18a/ren18a.pdf)
