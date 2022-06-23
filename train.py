@@ -115,7 +115,7 @@ class Trainer(object):
         train_loss = 0.
         train_loader = BatchWrapper(
             BucketDataLoader(self.aug_train_set + self.train_set, batch_size=self.args.batch_size,
-                             key=lambda x: len(x.chars), shuffle=True, sort_within_batch=True), mixup=True)
+                             key=lambda x: len(x.tokens), shuffle=True, sort_within_batch=True), mixup=True)
         self.model.zero_grad()
         for i, batch_train_data in enumerate(train_loader):
             batcher, mix_alpha, batcher2, _ = batch_train_data
@@ -124,7 +124,6 @@ class Trainer(object):
             batch.to_device(self.args.device)
             batch2.to_device(self.args.device)
             mix_alpha = mix_alpha.to(self.args.device)
-
             tag_score = self.model(batch.bert_inp, batch.mask, batch2.bert_inp, batch2.mask, mix_alpha)
             loss = self.model.tag_loss(tag_score[:, :batch.ner_ids.shape[1]], batch.ner_ids, batch.mask,
                                        mixup_ws=mix_alpha)
@@ -133,9 +132,6 @@ class Trainer(object):
             loss.backward()
             loss_val = loss.data.item()
             train_loss += loss_val
-
-            # nn_utils.clip_grad_norm_(self.model.base_params(), max_norm=self.args.grad_clip)
-            # nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.bert_params()), max_norm=self.args.bert_grad_clip)
             nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.parameters()),
                                      max_norm=self.args.grad_clip)
             self.optimizer.step()
@@ -191,7 +187,7 @@ class Trainer(object):
                 w = w_tilde / norm_w
             else:
                 w = w_tilde
-            # w = w_tilde / len(w_tilde)
+
             yf = self.model(batch.bert_inp, batch.mask)
             cost = self.model.tag_loss(yf, batch.ner_ids, batch.mask, reduction='none')
             batch_loss = torch.sum(cost * w)
@@ -199,10 +195,6 @@ class Trainer(object):
             batch_loss.backward()
             loss_val = batch_loss.data.item()
             train_loss += loss_val
-            # nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.base_params()),
-            #                          max_norm=self.args.grad_clip)
-            # nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.bert_params()),
-            #                          max_norm=self.args.bert_grad_clip)
             nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.parameters()),
                                      max_norm=self.args.grad_clip)
             self.optimizer.step()
@@ -217,11 +209,11 @@ class Trainer(object):
         t1 = time.time()
         train_loss = 0.
         train_loader = BatchWrapper(
-            BucketDataLoader(self.train_set, batch_size=self.args.batch_size, key=lambda x: len(x.chars), shuffle=True,
+            BucketDataLoader(self.train_set, batch_size=self.args.batch_size, key=lambda x: len(x.tokens), shuffle=True,
                              sort_within_batch=True), mixup=True, mixup_args=(self.args.mix_alpha, self.args.mix_alpha))
         aug_train_loader = BatchWrapper(
             BucketDataLoader(self.aug_train_set + self.train_set, batch_size=self.args.aug_batch_size,
-                             key=lambda x: len(x.chars), shuffle=True, sort_within_batch=True), mixup=True,
+                             key=lambda x: len(x.tokens), shuffle=True, sort_within_batch=True), mixup=True,
             mixup_args=(self.args.mix_alpha, self.args.mix_alpha))
         val_iter = iter(train_loader)
         self.model.zero_grad()
@@ -281,7 +273,6 @@ class Trainer(object):
                 w = w_tilde / norm_w
             else:
                 w = w_tilde
-            # w = w_tilde / len(w_tilde)
 
             tag_score = self.model(batch.bert_inp, batch.mask, batch2.bert_inp, batch2.mask, mix_alpha)
             cost = self.model.tag_loss(tag_score[:, :batch.ner_ids.shape[1]], batch.ner_ids, batch.mask,
@@ -294,10 +285,6 @@ class Trainer(object):
 
             val_loss = batch_loss.data.item()
             train_loss += val_loss
-            # nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.base_params()),
-            #                          max_norm=self.args.grad_clip)
-            # nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.bert_params()),
-            #                          max_norm=self.args.bert_grad_clip)
             nn_utils.clip_grad_norm_(filter(lambda p: p.requires_grad, self.model.parameters()),
                                      max_norm=self.args.grad_clip)
             self.optimizer.step()
@@ -307,12 +294,10 @@ class Trainer(object):
         return train_loss / len(aug_train_loader)
 
     def save_states(self, save_path, best_test_metric=None):
-        # if os.path.exists(save_path):
-        #    os.remove(save_path)
         self.model.zero_grad()
         self.optimizer.zero_grad()
         self.meta_opt.zero_grad()
-        # 随机生成器状态(Byte Tensor)
+        # random generator state (Byte Tensor)
         rand_states = [random.getstate(), np.random.get_state(), torch.get_rng_state(), torch.cuda.get_rng_state() if torch.cuda.is_available() else None]
         check_point = {'best_prf': best_test_metric,
                        'rand_states': rand_states,
@@ -325,7 +310,6 @@ class Trainer(object):
 
     def restore_states(self, load_path):
         ckpt = torch.load(load_path)
-        
         random.setstate(ckpt['rand_states'][0])
         np.random.set_state(ckpt['rand_states'][1])
         torch.set_rng_state(ckpt['rand_states'][2])
@@ -341,10 +325,11 @@ class Trainer(object):
 
     def run(self):
         patient = 0
-        to_mix, to_rw = False, False
-        two_stage = False
+        to_mix = self.args.to_mix
+        to_rw = self.args.to_rw
+        two_stage = self.args.two_stage
         best_dev_metric, best_test_metric = dict(), dict()
-        for ep in range(1, 1 + self.args.epoch):
+        for ep in range(self.args.epoch):
             if not to_rw:
                 if not to_mix:
                     # to_mix, to_rw = False, False
@@ -435,7 +420,7 @@ if __name__ == '__main__':
 
     data_path = data_config('config/data_path.json')
 
-    random_seeds = [1357, 2789, 3391, 4553, 5919]
+    random_seeds = [1357, 2789, 3391, 4553, 5917]
     final_res = {'p': [], 'r': [], 'f': []}
     for seed in random_seeds:
         set_seeds(seed)

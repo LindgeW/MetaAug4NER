@@ -49,7 +49,7 @@ def load_data(path):
     too_long = 0
     with open(path, 'r', encoding='utf-8') as fr:
         for inst in read_insts(fr):
-            if len(inst.chars) < 512:
+            if len(inst.tokens) < 512:
                 dataset.append(inst)
             else:
                 too_long += 1
@@ -73,13 +73,9 @@ def create_vocab(data_sets, bert_model_path=None, embed_file=None):
     ))
 
 
-def _is_chinese(a_chr):
-    return u'\u4e00' <= a_chr <= u'\u9fff'
-
-
 def batch_variable(batch_data, mVocab):
     batch_size = len(batch_data)
-    max_seq_len = 1 + max(len(inst.chars) for inst in batch_data)
+    max_seq_len = 1 + max(len(inst.tokens) for inst in batch_data)
 
     bert_vocab = mVocab['bert']
     ner_tag_vocab = mVocab['ner']
@@ -87,8 +83,8 @@ def batch_variable(batch_data, mVocab):
     mask = torch.zeros((batch_size, max_seq_len), dtype=torch.bool)
     chars = []
     for i, inst in enumerate(batch_data):
-        seq_len = len(inst.chars) + 1
-        chars.append(inst.chars)
+        seq_len = len(inst.tokens) + 1
+        chars.append(inst.tokens)
         mask[i, :seq_len].fill_(1)
         ner_ids[i, :seq_len] = torch.tensor([ner_tag_vocab.inst2idx(nt) for nt in ['O'] + inst.ner_tags])
 
@@ -126,3 +122,6 @@ def load_from(pkl_file):
         obj = pickle.load(fr)
     return obj
 
+
+def _is_chinese(a_chr):
+    return u'\u4e00' <= a_chr <= u'\u9fff'

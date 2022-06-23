@@ -4,7 +4,7 @@ import torch.nn as nn
 from transformers import BertModel
 from modules.scale_mix import ScalarMix
 
-# Mixing on the Bert Embedding
+# Mixing on the Bert Embedding Layer
 
 class MyBertModel(BertModel):
     def __init__(self, config):

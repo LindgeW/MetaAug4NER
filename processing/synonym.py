@@ -1,10 +1,11 @@
 from gensim.models import Word2Vec, KeyedVectors
 from stop_words import stop_words
 
-# Wikipedia2Vec
+# Online synonym toolkit：Wikipedia2Vec
 # https://wikipedia2vec.github.io/wikipedia2vec/pretrained/
 # https://wikipedia2vec.github.io/wikipedia2vec/usage/
 
+w2v_path = './glove.6B.100d.txt'
 
 class Synonym:
     def __init__(self, word2vec_path):
@@ -23,4 +24,4 @@ class Synonym:
         return [w for w, s in sims]
 
 
-synonyms = Synonym('glove.6B.100d.txt')
+synonyms = Synonym(w2v_path)

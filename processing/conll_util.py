@@ -1,7 +1,4 @@
 import sys
-'''
-Chinese：char-level CoNLL to word-level CoNLL
-'''
 
 
 def load_data(path):

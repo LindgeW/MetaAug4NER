@@ -15,7 +15,7 @@ class GELU(nn.Module):
 
 
 class BertEmbedding(nn.Module):
-    def __init__(self, model_path, nb_layers=1, merge='none', fine_tune=True, use_proj=True, proj_dim=256):
+    def __init__(self, model_path, nb_layers=1, merge='none', fine_tune=True, use_proj=False, proj_dim=256):
         super(BertEmbedding, self).__init__()
         assert merge in ['none', 'linear', 'mean']
         self.merge = merge

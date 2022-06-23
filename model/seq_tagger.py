@@ -31,31 +31,28 @@ class BertSeqTagger(nn.Module):
 
     def bert_params(self):
         return self.bert.bert.parameters()
+        # return self.bert.parameters()
 
     def bert_named_params(self):
         return self.bert.bert.named_parameters()
+        # return self.bert.named_parameters()
 
     def base_named_params(self):
-        bert_param_names = []
-        for name, param in self.bert.bert.named_parameters():
-            bert_param_names.append(id(param))
-
+        bert_params = list(map(id, self.bert.bert.parameters()))
         other_params = []
         for name, param in self.named_parameters():
-            if param.requires_grad and id(param) not in bert_param_names:
+            if param.requires_grad and id(param) not in bert_params:
                 other_params.append((name, param))
         return other_params
-    
-    def base_params(self):
-        bert_param_names = []
-        for name, param in self.bert.bert.named_parameters():
-            if param.requires_grad:
-                bert_param_names.append(id(param))
 
-        other_params = []
-        for name, param in self.named_parameters():
-            if param.requires_grad and id(param) not in bert_param_names:
-                other_params.append(param)
+    def base_params(self):
+        # bert_params = list(map(id, self.bert.bert.parameters()))
+        # other_params = []
+        # for param in self.parameters():
+        #     if param.requires_grad and id(param) not in bert_params:
+        #         other_params.append(param)
+        bert_params = list(map(id, self.bert.bert.parameters()))
+        other_params = filter(lambda p: id(p) not in bert_params and p.requires_grad, self.parameters())
         return other_params
 
     def forward(self, bert_inp, mask=None):

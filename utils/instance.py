@@ -1,6 +1,6 @@
 class Instance(object):
-    def __init__(self, chars, ner_tags, **kwargs):
-        self.chars = chars
+    def __init__(self, tokens, ner_tags, **kwargs):
+        self.tokens = tokens
         self.ner_tags = ner_tags
         if kwargs:
             for k, v in kwargs.items():

@@ -9,6 +9,13 @@ This repository contains the code for [Robust Self-Augmentation for Named Entity
 + [higher](https://github.com/facebookresearch/higher)
     + Core Thought: the complex calculation of higher-order gradients is simplified to a first-order approximation (e.g., to do the first-order Taylor expansion)
 
+#### Prepare
+ 1. Build the entity dictionary: `python build_ner_dic.py train_data_file ent.dic [cn|en]`
+ 2. Obtain the word-to-vectors training on [Wikipedia](https://wikipedia2vec.github.io/wikipedia2vec/pretrained/)
+ 3. Produce pseudo-labeled training data：`python [cn|en]_aug_util.py train_data_file aug_train_data_file ent.dic ratio aug_times`
+ 
+&ensp;&ensp;Note: The data format is *BIOES* CoNLL. The `conll_util.py` script provides the format transformation.
+
 #### Related Work
 - [Learning to Reweight Examples for Robust Deep Learning](https://proceedings.mlr.press/v80/ren18a/ren18a.pdf)
 - [Meta-Weight-Net: Learning an Explicit Mapping For Sample Weighting](https://proceedings.neurips.cc/paper/2019/file/e58cc5ca94270acaceed13bc82dfedf7-Paper.pdf)

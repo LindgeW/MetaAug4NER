@@ -29,6 +29,18 @@ def write_to_conll(path, insts):
     print(nb_sent, ' sents are written to ', path)
 
 
+def sampleN(path, num=500, seed=None):
+    if seed:
+        random.seed(seed)
+    dataset = []
+    for insts in load_data(path):
+        dataset.append(insts)
+        if len(dataset) == num:
+            break
+    random.shuffle(dataset)
+    return dataset
+
+
 def train_dev_split(path, ratio=0.1, seed=None):
     if seed:
         random.seed(seed)
