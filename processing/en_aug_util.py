@@ -126,6 +126,7 @@ def do_aug(data_path, save_path, dic_path, ratio=0.5, aug_times=1):
 
 # python aug_utils.py onto5.train train.repl1 train.dic 0.5 1
 def run():
+    random.seed(1234)
     train_file, out_file, dic_file, ratio, times = sys.argv[1:6]
     do_aug(train_file,
            out_file,
