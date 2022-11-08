@@ -12,7 +12,7 @@ This repository contains the code for [Robust Self-Augmentation for Named Entity
 #### Prepare
  1. Get partial training set: `python processing/sample.py 0.05|0.1|0.3`
  2. Build the entity dictionary: `python processing/build_ner_dic.py train_data_file ent.dic cn|en`
- 3. Obtain the word-to-vectors training on [Wikipedia](https://wikipedia2vec.github.io/wikipedia2vec/pretrained/)
+ 3. Obtain the word-to-vectors trained on [Wikipedia](https://wikipedia2vec.github.io/wikipedia2vec/pretrained/)
  4. Produce pseudo-labeled training set：`python processing/cn|en_aug_util.py train_data_file aug_train_data_file ent.dic ratio aug_times`
  
 &ensp;&ensp;Note: The data format is *BIOES* CoNLL. The `processing/conll_util.py` script provides the format transformation.
